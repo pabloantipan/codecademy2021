@@ -1,104 +1,13 @@
 from multiprocessing import Process, Event
-from statistics import mean
-from math import sqrt
 import enquiries
-
-
-def calculate_area_bh(base: int or float, height: int or float) -> int or float:
-    """It ...
-    :args:
-    :raises:
-    :returns:
-    """
-    if not isinstance(base, [int, float]) or not isinstance(height, [int, float]):
-        raise TypeError("args must be int or float instances")
-
-    return base * height / 2
-
-
-def triangle_type(
-    sidea: int or float, sideb: int or float, sidec: int or float
-) -> tuple:
-    """It ...
-    :args:
-    :raises:
-    :returns:
-    """
-    # (istriangle: bool, type:str)
-    sides = [sidea, sideb, sidec]
-    # get if it is a triangle
-    if not validate_triangle(sides):
-        # raise ValueError("Please be sure that sides are a triangle")
-        return (False, None)
-
-    if sides[0] == sides[1] and sides[0] == sides[2]:
-        return (True, "equilatero")
-
-    if sides[0] == sides[1] or sides[0] == sides[2] or sides[1] == sides[2]:
-        return (True, "isoceles")
-
-    return (True, "escaleno")
-
-
-def calculate_area_semiperimeter(
-    sidea: int or float, sideb: int or float, sidec: int or float
-) -> int or float:
-    """It ...
-    :args:
-    :raises:
-    :returns:
-    """
-    if (
-        not isinstance(sidea, (int, float))
-        or not isinstance(sideb, (int, float))
-        or not isinstance(sidec, (int, float))
-    ):
-        raise TypeError("args must be int or float instances")
-    sides = [sidea, sideb, sidec]
-    sides.sort(reverse=True)
-
-    sp = sum(sides) / 2
-    return sqrt(sp * (sp - sidea) * (sp - sideb) * (sp - sidec))
-
-
-def validate_triangle(sides: list) -> bool:
-    """It ...
-    :args:
-    :raises:
-    :returns:
-    """
-    if not isinstance(sides, list) or len(sides) != 3:
-        raise TypeError(f"Argument must be a list instance. Got {sides}: {type(sides)}")
-    for side in sides:
-        if not isinstance(side, (int, float)):
-            raise TypeError(
-                f"Side must be int or float instance. Got {side}: {type(side)}"
-            )
-    sides.sort(reverse=True)
-    # get if it is a triangle
-    if not sides[0] < sides[1] + sides[2]:
-        return False
-    if not sides[1] < sides[0] + sides[2]:
-        return False
-    if not sides[2] < sides[1] + sides[0]:
-        return False
-    return True
-
-
-def get_dim(task: str) -> tuple:
-    # (result:float, exit: bool)
-    dimm = None
-    task = f"{task}. (Escribe 'Salir' para terminar): "
-    while True:
-        dimm = input(task)
-        if dimm.lower() == "salir":
-            return (None, True)
-        if not dimm.isnumeric():
-            print("Por favor ingresa un numero")
-            continue
-        dimm = float(dimm)
-        break
-    return (dimm, False)
+from utils import get_dim, yesorno_task
+from math import sqrt
+from .api_triangle import (
+    calculate_area_bh,
+    triangle_type,
+    calculate_area_semiperimeter,
+    validate_triangle,
+)
 
 
 class TriangleAreaApp(Process):
@@ -139,11 +48,11 @@ class TriangleAreaApp(Process):
                 break
 
     def calculate_area_bh(self) -> tuple:
-        # (result:float, exit: bool)
+        # (result:float, triangle_type: str, exit: bool)
         task = "Ingresa el valor de la base del triangulo"
         base, exit = get_dim(task)
         if exit:
-            return (None, True)
+            return (None, None, True)
 
         task = "Ingresa el valor de la altura del triangulo"
         height, exit = get_dim(task)
@@ -151,7 +60,27 @@ class TriangleAreaApp(Process):
             return (None, True)
         area = base * height / 2
         print(f"El area de tu triangulo es: {area}\n")
+
+        self.determine_triangle_type(base, height)
+
         return (area, False)
+
+    def determine_triangle_type(self, base: float, height: float) -> str:
+        # (type: str, exit: bool)
+        task = "La altura es mediana de la base?"
+        res, exit = yesorno_task(task)
+        eq_h = sqrt(3) / 2 * base
+        if exit:
+            return (None, True)
+        if res and eq_h == height:
+            print("Tu triangulo es equilatero\n")
+            return ("equilatero", False)
+        if res and not eq_h == height:
+            print("Tu triangulo es isoceles\n")
+            return ("isoceles", False)
+        if not res:
+            print("Tu triangulo es escaleno\n")
+            return ("escaleno", False)
 
     def calculate_area_sp(self) -> tuple:
         # (result:float, exit: bool)
