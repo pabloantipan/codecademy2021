@@ -1,6 +1,6 @@
 from multiprocessing import Process, Event
 import enquiries
-from utils import get_dim, yesorno_task
+from src.utils import get_dim, yesorno_task
 from math import sqrt
 from .api_triangle import (
     calculate_area_bh,

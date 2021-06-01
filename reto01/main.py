@@ -1,4 +1,4 @@
-from triangleareaapp import TriangleAreaApp
+from src.triangleareaapp import TriangleAreaApp
 
 if __name__ == "__main__":
     app = TriangleAreaApp()
